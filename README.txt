@@ -1,7 +1,7 @@
 				================================================================================
-							Welcome to Lifeness Simulator
+										Welcome to Lifeness Simulator
 
-					A Biomedic Software Simulator made by the Lifeness Project Team
+						A Biomedic Software Simulator made by the Lifeness Project Team
 				================================================================================
 
 Here's the oficial simulator for everyone who wants to add upgrades, ideas, models and anything you want:
@@ -35,5 +35,6 @@ Here's some main point:
 					That's all. Thank u everyone and I hope you'll enjoy Life.
 
 						   Matthias Jiménez Villamar | MJ 
+
 
 
