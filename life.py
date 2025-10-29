@@ -20,8 +20,8 @@ from platformdirs import user_documents_dir
 
 # GUI / UI
 from PySide6 import QtCore, QtGui, QtWidgets
-from PySide6.QtWidgets import (QApplication, QGraphicsOpacityEffect, QMainWindow, QLineEdit, QWidget, QLabel, QPushButton, QListWidget, QTextEdit, QHBoxLayout, QVBoxLayout, QSplitter, QSlider, QMessageBox, QDialog, QFormLayout, QComboBox)
-from PySide6.QtGui import QFont, QAction, QIcon, QPixmap, QMovie
+from PySide6.QtWidgets import (QApplication, QGraphicsOpacityEffect, QMainWindow, QSizePolicy, QLineEdit, QWidget, QLabel, QPushButton, QGraphicsDropShadowEffect, QListWidget, QTextEdit, QHBoxLayout, QVBoxLayout, QSplitter, QSlider, QMessageBox, QDialog, QFormLayout, QComboBox)
+from PySide6.QtGui import QFont, QAction, QIcon, QPixmap, QMovie, QColor
 from PySide6.QtCore import Qt, QPropertyAnimation, QEasingCurve, QTimer, QRect
 from PySide6.QtOpenGLWidgets import QOpenGLWidget
 from OpenGL.GL import *
@@ -59,8 +59,8 @@ logger.info("Launching Lifeness Simulator ..")
 class MetaProyecto:
     titulo: str = "Lifeness Simulator"
     autores: str = "A Biomedic app made by the Lifeness Project Team."
-    version: str = "3.1"
-    fecha: str = "2025-12-10"
+    version: str = "3.4"
+    fecha: str = "2025-28-10"
     idioma: str = "es"
     descripcion: str = "Simulation that transforms"
 
@@ -168,31 +168,37 @@ class Activation: # Activador
 class GLHumanWidget(QOpenGLWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
-        # Modelos Humanos
+        # PATH DE Modelos Humanos
         self.model_male_path = os.path.join("assets/anatomy", "male.obj")
         self.model_female_path = os.path.join("assets/anatomy", "female.obj")
         self.model_cientific_path = os.path.join("assets/anatomy", "medical.obj")
         # Modelos Patogenos
         self.model_corona_path = os.path.join("assets/patogens/covid_19", "coronavirus.obj")
         self.model_corona_intern_path = os.path.join("assets/patogens/covid_19", "coronavirus_interno.obj")
+        self.model_fungus_path = os.path.join("assets/patogens/hongus", "hongus.obj")
+        self.model_fungusespore_path = os.path.join("assets/patogens/hongus", "espore.obj")
         # Modelos Extras
         self.model_heart_path = os.path.join("assets/extra_parts/heart", "heart.obj")
         self.model_sperm_path = os.path.join("assets/extra_parts/reproductive_sys", "sperm.obj")
         self.model_cell_path = os.path.join("assets/extra_parts/blood", "red_cells.obj")
         self.model_ear_path = os.path.join("assets/extra_parts/ear", "ear.obj")
-
+        self.model_dna_path = os.path.join("assets/extra_parts/dna", "dna.obj")
+        # CARGA DE Modelos Humanos
         self.model_male = OBJ(self.model_male_path) if os.path.isfile(self.model_male_path) else None
         self.model_female = OBJ(self.model_female_path) if os.path.isfile(self.model_female_path) else None
-        self.model_cientific = OBJ(self.model_cientific_path) if os.path.isfile(self.model_cientific_path) else None
-        
-        self.model_corona = OBJ(self.model_corona_path) if os.path.isfile(self.model_corona_path) else None
-        self.model_corona_intern = OBJ(self.model_corona_intern_path) if os.path.isfile(self.model_corona_intern_path) else None
-        
-        self.model_heart = OBJ(self.model_heart_path) if os.path.isfile(self.model_hear_path) else None
-        self.model_sperm = OBJ(self.model_sperm_path) if os.path.isfile(self.model_sperm_path) else None
-        self.model_cell = OBJ(self.model_cell_path) if os.path.isfile(self.model_cell_path) else None
-        self.model_ear = OBJ(self.model_ear_path) if os.path.isfile(self.model_ear_path) else None
-        
+        # self.model_cientific = OBJ(self.model_cientific_path) if os.path.isfile(self.model_cientific_path) else None
+        # # Modelos Patogenos
+        # self.model_corona = OBJ(self.model_corona_path) if os.path.isfile(self.model_corona_path) else None
+        # self.model_corona_intern = OBJ(self.model_corona_intern_path) if os.path.isfile(self.model_corona_intern_path) else None
+        # self.model_fungus =  OBJ(self.model_fungus_path) if os.path.isfile(self.model_fungus_path) else None
+        # self.model_fungusespore =  OBJ(self.model_fungusespore_path) if os.path.isfile(self.model_fungusespore_path) else None
+        # # Modelos Extras
+        # self.model_heart = OBJ(self.model_heart_path) if os.path.isfile(self.model_heart_path) else None
+        # self.model_sperm = OBJ(self.model_sperm_path) if os.path.isfile(self.model_sperm_path) else None
+        # self.model_cell = OBJ(self.model_cell_path) if os.path.isfile(self.model_cell_path) else None
+        # self.model_ear = OBJ(self.model_ear_path) if os.path.isfile(self.model_ear_path) else None
+        # self.model_dna = OBJ(self.model_dna_path) if os.path.isfile(self.model_dna_path) else None
+
         self.current_model = self.model_male #Se Define el modelo humano masculino al iniciar
         self.yaw = 0.0
         self.last_mouse_x = None
@@ -417,7 +423,6 @@ class SettingsDialog(QDialog):
         self.sldr_brightness = QSlider(QtCore.Qt.Horizontal)
         self.sldr_brightness.setRange(10, 200)  # 100 = normal, menos = oscuro, más = brillante
         self.sldr_brightness.setValue(100)
-        self.sldr_brightness.valueChanged.connect(self.change_brightness)
         self.sldr_contrast = QSlider(QtCore.Qt.Horizontal)
         self.sldr_contrast.setRange(0, 100); self.sldr_contrast.setValue(50)
         self.chk_fullscreen = QtWidgets.QCheckBox("Pantalla completa")
@@ -443,20 +448,20 @@ class SettingsDialog(QDialog):
 
 # ---------------------------------------------------------------------------
 class DiseasePatogen(QMainWindow):
-    def __init__(self, enfermedad_actual):
+    def __init__(self, enfermedad_actual, descripciones):
         super().__init__()
         self.setWindowTitle("Life Analizer")
         ico_path = os.path.join(ASSETS_DIR, "pictures/icons", "ico2.ico")
         self.setWindowIcon(QIcon(ico_path))
         self.setGeometry(200, 100, 1100, 600)
-        self.setFixedSize(1100, 600)
+        self.setFixedSize(1100, 600)  # Tamaño fijo, no redimensionable
 
         screen = self.screen().availableGeometry()
         x = (screen.width() - self.width()) //2
         y = (screen.height() - self.height()) //2
         self.move(x, y)
 
-        # Widget central
+         # Widget central
         central = QWidget()
         self.setCentralWidget(central)
 
@@ -467,10 +472,12 @@ class DiseasePatogen(QMainWindow):
         left_panel = QWidget()
         left_layout = QVBoxLayout(left_panel)
 
-        label_title_2 = QLabel("AQUI DESCRIPCION MAX 10")
-        label_title_2.setFont(QFont("Arial", 12, QFont.Bold))
-        label_title_2.setAlignment(Qt.AlignCenter)
-        left_layout.addWidget(label_title_2)
+        label_title = QLabel(descripciones) # Título
+        label_title.setWordWrap(True)
+        label_title.setFont(QFont("Monserrat", 12, QFont.Bold))
+        label_title.setAlignment(Qt.AlignJustify)
+        label_title.setMaximumHeight(self.height()*0.4)
+        left_layout.addWidget(label_title)
 
         left_layout.addStretch()
         main_layout.addWidget(left_panel, 1)
@@ -483,12 +490,26 @@ class DiseasePatogen(QMainWindow):
         self.viewer = GLHumanWidget()
         right_layout.addWidget(self.viewer)
 
-        self.desc_label = QLabel(f"{enfermedad_actual}")
-        self.desc_label.setStyleSheet("color: white; padding: 10px;")
-        self.desc_label.setFont(QFont("Segoe UI", 30, QFont.Bold))
+        # Panel inferior (descripción)
+        self.desc_label = QLabel(enfermedad_actual)
+        self.desc_label.setStyleSheet("color: white; padding: 12px;")
+        self.desc_label.setFont(QFont("Poppins", 32, QFont.Bold))
         self.desc_label.setAlignment(Qt.AlignCenter)
+        self.blink_text(self.desc_label)
         right_layout.addWidget(self.desc_label)
         main_layout.addWidget(right_panel, 3)
+
+    def blink_text(self, label: QLabel):
+        opa = QGraphicsOpacityEffect(label)
+        label.setGraphicsEffect(opa)
+        ani = QPropertyAnimation(opa, b"opacity")
+        ani.setDuration(900)
+        ani.setStartValue(1.0)
+        ani.setEndValue(0.0)
+        ani.setEasingCurve(QEasingCurve.InOutQuad)
+        ani.setLoopCount(-1)
+        ani.start()
+        label.actionEventanimation = ani
             
 # ---------------------------------------------------------------------------
 class AnimatedButton(QPushButton):
@@ -536,7 +557,6 @@ class ReportGenerator:
         # Carpeta universal de documentos
         documents_dir = user_documents_dir()
         self.output_dir = os.path.join(documents_dir, "Lifeness Simulator/Reports")
-        logger.info("Success!. Report saved correctly in Documents.")
         os.makedirs(self.output_dir, exist_ok=True)
 
         # Plantilla incluida en el exe (gracias a resource_path)
@@ -558,37 +578,56 @@ class ReportGenerator:
                         else:
                             cell.text = "OK"
         doc.save(self.out_path)
+        logger.info("Success!. Report saved correctly in Documents/Lifeness Simulator.")
         return self.out_path
 
 # ---------------------------------------------------------------------------
 class AuthorsDialog(QDialog):
-    def __init__(self):
-        super().__init__()
-        self.setWindowTitle("Autores del Proyecto")
-        self.setFixedSize(400, 500)
-        self.setStyleSheet("background-color: #f5f5f5; border-radius: 10px;")
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.setWindowTitle("Life | Desarrollador | Equipo de Trabajo")
+        ico_path = os.path.join(ASSETS_DIR, "pictures/icons", "ico1.ico") # Ícono de la ventana
+        self.setWindowIcon(QIcon(ico_path))
+        self.setFixedSize(600, 500)
+        self.setStyleSheet("""
+            QPushButton{
+                background-color: #0078D7;
+                color: white;
+                font: bold 12pt "Segoe UI";
+                border-radius: 10px;
+                padding: 8px 16px;
+            }
+            QPushButton:hover{
+                background-color: #0BD4D4;
+            }
+            QPushButton:pressed{
+                background-color: #ABABAB;
+            }
+            QLabel{
+                font: 12pt "Segoe UI";
+            }
+        """)
 
-        # Datos de autores
         self.authors = [
             {
                 "name": "Matthias Jiménez",
-                "image": "author1.jpg",
-                "desc": "Investigador principal y diseñador del simulador biomédico."
+                "image": "matth.jpg",
+                "desc": "CEO Lifeness Project. Investigador principal, diseñador de Life Biomedic Simulator. Programador Full Dev | Python Science Tech."
             },
             {
                 "name": "Diego Guerron",
-                "image": "author2.jpg",
-                "desc": "Desarrolladora de la interfaz 3D y del módulo de visualización médica."
+                "image": "guerron.jpg",
+                "desc": "Director departamento de diseño e investigacion. Diseñador logico y estadistico inteligente"
             },
             {
                 "name": "Jose Herbas",
-                "image": "author3.jpg",
-                "desc": "Encargado del modelado 3D y del procesamiento de datos científicos."
+                "image": "herbas.jpg",
+                "desc": "Director Logistico y legal en base a licencias, asi como patente del simulador"
             },
             {
                 "name": "Oliver Vizuete",
-                "image": "author4.jpg",
-                "desc": "Especialista en documentación y diseño de materiales educativos."
+                "image": "vizuete.jpg",
+                "desc": "Co-director y Analista y profesional en investigacion logistica y areas de la IoT"
             }
         ]
 
@@ -596,20 +635,19 @@ class AuthorsDialog(QDialog):
 
         # Widgets
         self.name_label = QLabel("", alignment=Qt.AlignCenter)
-        self.name_label.setStyleSheet("font-size: 18px; font-weight: bold; color: #333;")
+        self.name_label.setStyleSheet("font-size: 18px; font-weight: bold;")
 
         self.photo_label = QLabel(alignment=Qt.AlignCenter)
         self.photo_label.setFixedSize(200, 200)
-        self.photo_label.setStyleSheet("border-radius: 100px; border: 2px solid #aaa;")
 
         self.desc_label = QLabel("", alignment=Qt.AlignCenter)
         self.desc_label.setWordWrap(True)
-        self.desc_label.setStyleSheet("font-size: 14px; color: #555; padding: 10px;")
+        self.desc_label.setStyleSheet("font-size: 14px; padding: 10px;")
 
         # Botones
-        self.prev_btn = QPushButton("← Atrás")
-        self.next_btn = QPushButton("Siguiente →")
-        self.close_btn = QPushButton("Cerrar")
+        self.prev_btn = AnimatedButton("Atrás")
+        self.next_btn = AnimatedButton("Siguiente")
+        self.close_btn = AnimatedButton("Enviar agradecimientos y Salir")
 
         self.prev_btn.clicked.connect(self.show_prev)
         self.next_btn.clicked.connect(self.show_next)
@@ -623,7 +661,7 @@ class AuthorsDialog(QDialog):
 
         main_layout = QVBoxLayout()
         main_layout.addWidget(self.name_label)
-        main_layout.addWidget(self.photo_label)
+        main_layout.addWidget(self.photo_label, alignment=Qt.AlignCenter)
         main_layout.addWidget(self.desc_label)
         main_layout.addLayout(button_layout)
         main_layout.addWidget(self.close_btn, alignment=Qt.AlignCenter)
@@ -636,8 +674,8 @@ class AuthorsDialog(QDialog):
         author = self.authors[self.index]
         self.name_label.setText(author["name"])
         self.desc_label.setText(author["desc"])
+        pixmap = QPixmap(os.path.join(ASSETS_DIR, "pictures/authors", author["image"]))
 
-        pixmap = QPixmap(author["image"])
         if not pixmap.isNull():
             self.photo_label.setPixmap(pixmap.scaled(200, 200, Qt.KeepAspectRatio, Qt.SmoothTransformation))
         else:
@@ -690,11 +728,12 @@ class ExtraWindow(QMainWindow):
 
         # Botones de modelos
         self.buttons = {}
-        models = {
+        models = { 
             "Corazón": "heart.obj",
             "ADN": "dna.obj",
             "Oreja": "ear.obj",
-            "Espermatozoide": "Sperm.obj"
+            "Espermatozoide": "sperm.obj",
+            "Globulo Rojo": "red_cells.obj"
         }
 
         for name, file in models.items():
@@ -753,7 +792,6 @@ class ExtraWindow(QMainWindow):
         right_layout = QVBoxLayout(right_panel)
 
         self.viewer = GLHumanWidget()
-        # self.viewer.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
         right_layout.addWidget(self.viewer)
 
         # Panel inferior (descripción)
@@ -767,16 +805,18 @@ class ExtraWindow(QMainWindow):
             "ADN": "Modelo 3D de la doble hélice del ADN, base de la información genética.",
             "Huesos": "Estructura ósea básica del cuerpo humano, modelo anatómico de referencia.",
             "Cerebro": "Modelo 3D del cerebro humano con divisiones hemisféricas y lóbulos cerebrales.",
-            "Espermatozoide": "Representación microscópica del espermatozoide humano, vista aumentada."
+            "Espermatozoide": "Representación microscópica del espermatozoide humano, vista aumentada.",
+            "Oreja": "Representación aumentada de la oreja izquierda humana.",
+            "Globulo Rojo": "Representación microscópica del globulo rojo plasmado en 3D."
         }
 
-    def load_model(self, model_file, name):
+    def load_model(self, f, n):
         try:
-            model_path = os.path.join(BASE_DIR, f"assets/anatomy/extra_parts/{model_file}")
+            model_path = os.path.join(BASE_DIR, f"assets/extra_parts/{f}")
             self.viewer.load_model(model_path)
-            self.desc_label.setText(self.model_descriptions.get(name, "Modelo cargado."))
+            self.desc_label.setText(self.model_descriptions.get(n, "Modelo cargado."))
         except Exception as e:
-            self.desc_label.setText(f"Error al cargar {name}: {str(e)}")
+            self.desc_label.setText(f"Error al cargar {n}: {str(e)}")
 
 # ---------------------------------------------------------------------------
 class MainWindow(QMainWindow): # Constructor o init
@@ -787,10 +827,12 @@ class MainWindow(QMainWindow): # Constructor o init
         self.setWindowTitle("Life")
         ico_path = os.path.join(ASSETS_DIR, "pictures/icons", "ico1.ico")
         self.setWindowIcon(QIcon(ico_path))
-        self.showMaximized()
-        self.resize(1290, 690)
+        screen_res = self.screen().availableGeometry()
+        screen_width = screen_res.width()
+        screen_height = screen_res.height()
+        self.setGeometry(0, 0, screen_width, screen_height)
         self.setFixedSize(self.size())
-        self.setWindowFlags(self.windowFlags() & -Qt.WindowMaximizeButtonHint)
+        # self.setWindowFlags(self.windowFlags() & -Qt.WindowMaximizeButtonHint) Linea que ocultaba el maximizar
         self.setWindowFlags(Qt.Window | Qt.WindowMinimizeButtonHint | Qt.WindowCloseButtonHint)
         self.center_window()
 
@@ -822,6 +864,29 @@ class MainWindow(QMainWindow): # Constructor o init
             QLabel{
                 font: 12pt "Segoe UI";
             }
+            QSlider::groove:horizontal {
+                border: 1px solid #999;
+                height: 8px;
+                background: #444;
+                border-radius: 4px;
+            }
+            QSlider::handle:horizontal {
+                background: qlineargradient(
+                    x1:0, y1:0, x2:1, y2:1,
+                    stop:0 #00b4db, stop:1 #0083b0
+                );
+                border: 1px solid #5c5c5c;
+                width: 18px;
+                height: 18px;
+                margin: -6px 0;  /* centra el círculo */
+                border-radius: 9px;  /* circular */
+            }
+            QSlider::handle:horizontal:hover {
+                background: qlineargradient(
+                    x1:0, y1:0, x2:1, y2:1,
+                    stop:0 #66e0ff, stop:1 #0099cc
+                );
+            }
         """)
 
         # MENÚ SUPERIOR
@@ -845,45 +910,47 @@ class MainWindow(QMainWindow): # Constructor o init
             }
         """)
 
-        menu_first = menubar.addMenu("☰  Analisis") # MENÚ1
+        menu_first = menubar.addMenu(" Analisis ") # MENÚ1
         # Subopciones
         first_report = QAction("Guardar Reporte", self)
         first_report.triggered.connect(self.generate_report)
 
-        menu_second = menubar.addMenu("☰ Preferencias") # MENÚ2
+        menu_second = menubar.addMenu(" Preferencias ") # MENÚ2
         # Subopciones
         sec_ajustes = QAction("Ajustes", self)
         sec_ajustes_dim = QAction("Ajustes Interactive 3D", self)
         sec_ajustes.triggered.connect(self.show_settings)
         sec_ajustes_dim.triggered.connect(self.show_settings_dim)
 
-        menu_third = menubar.addMenu("☰ Registro") # MENÚ3
+        menu_third = menubar.addMenu(" Registro ") # MENÚ3
         # Subopciones
         third_reg=QAction("Registro del producto", self)
         third_reg.triggered.connect(self.show_registration)
 
-        menu_fourth = menubar.addMenu("☰ Life") # MENÚ4
+        menu_fourth = menubar.addMenu(" Life ") # MENÚ4
         # Subopciones
-        fourth_version=QAction("Versión", self)
+        fourth_version=QAction("Versión y Licencia", self)
         fourth_version.triggered.connect(self.show_info)
-        fourth_info=QAction("Información", self)
-        fourth_info.triggered.connect(self.show_credits)
 
-        menu_fifth=menubar.addMenu("☰ Salir") # MENÚ5
+        menu_fifth=menubar.addMenu(" Salir ") # MENÚ5
         # Subopciones
         fifth_exit=QAction("Salir de la aplicacion", self)
         fifth_exit.triggered.connect(self.confirm_exit)
+
+        menu_sixth=menubar.addMenu(" Ayuda y Donaciones ") # MENÚ5
+        # Subopciones
+        sixth_web=QAction("Go to Gihub Oficcial Page", self)
+        sixth_web.triggered.connect(self.webpage)
 
         # Agregar acciones a los menús
         menu_second.addAction(sec_ajustes)
         menu_second.addSeparator()
         menu_second.addAction(sec_ajustes_dim)
         menu_third.addAction(third_reg)
-        menu_fourth.addAction(fourth_info)
-        menu_fourth.addSeparator()
         menu_fourth.addAction(fourth_version)
         menu_fifth.addAction(fifth_exit)
         menu_first.addAction(first_report)
+        menu_sixth.addAction(sixth_web)
 
         main_split = QSplitter(QtCore.Qt.Horizontal)
         main_split.setHandleWidth(0)
@@ -915,8 +982,8 @@ class MainWindow(QMainWindow): # Constructor o init
 
         # Botones del menú lateral
         self.btn_sim=AnimatedButton("Analisis de Patologias", self)
-        self.btn_book=AnimatedButton("Lifenesss Booklet", self)
-        self.btn_change=AnimatedButton("Cambiar modelo 3D", self)
+        self.btn_book=AnimatedButton("Lifeness Booklet", self)
+        self.btn_change=AnimatedButton("Cambiar Modelo", self)
         self.btn_extras=AnimatedButton("Extras y Recursos", self)
         self.btn_author = AnimatedButton("Agradecimientos", self)
         self.btn_help=AnimatedButton("Ayuda y Soporte", self)
@@ -964,17 +1031,11 @@ class MainWindow(QMainWindow): # Constructor o init
 
         timeline_bar = QWidget()
         t_layout = QHBoxLayout(timeline_bar)
-        self.btn_play = AnimatedButton("Play")
-        self.btn_pause = AnimatedButton("Pause")
-        self.cmb_speed = QComboBox()
-        self.cmb_speed.addItems(["0.5x", "1x", "2x"])
-        self.cmb_speed.setCurrentText("1x")
+        self.btn_play = AnimatedButton("Anatomy Slider")
         self.tslider = QSlider(QtCore.Qt.Horizontal)
         self.tslider.setRange(0, 100); self.tslider.setValue(0) # Agergamos valores al Deslizante, en este caso esta en 0
         self.tslider.valueChanged.connect(self.on_model_slider_changed)
         t_layout.addWidget(self.btn_play)
-        t_layout.addWidget(self.btn_pause)
-        t_layout.addWidget(self.cmb_speed)
         t_layout.addWidget(self.tslider)
         center_layout.addWidget(timeline_bar)
         main_split.addWidget(center_widget)
@@ -1021,10 +1082,6 @@ class MainWindow(QMainWindow): # Constructor o init
         self.btn_change.clicked.connect(self.change_model)
         self.btn_extras.clicked.connect(self.show_extras)
         self.btn_help.clicked.connect(self.show_help)
-        self.btn_play.clicked.connect(self.on_play)
-        self.btn_pause.clicked.connect(self.on_pause)
-        self.cmb_speed.currentTextChanged.connect(self.on_speed_change)
-        self.tslider.valueChanged.connect(self.on_timeline_move)
 
         QtGui_short_f11 = QAction(self)
         QtGui_short_f11.setShortcut("F11")
@@ -1035,12 +1092,7 @@ class MainWindow(QMainWindow): # Constructor o init
         QtGui_short_esc.triggered.connect(self.on_escape)
         self.addAction(QtGui_short_esc)
 
-        self.timeline_playing = False
-        self.timeline_speed = 1.0
-        self.timeline_timer = QtCore.QTimer()
-        self.timeline_timer.timeout.connect(self.advance_timeline)
         self.toggle_button.setGeometry(1128, 0, 132, 30)  # posición aprox.
-
         if os.path.exists(ACTIVATION_FILE): # Verificar activación
             self.enable_act_buttons()
             third_reg.setEnabled(False)
@@ -1101,7 +1153,10 @@ class MainWindow(QMainWindow): # Constructor o init
     def show_sim_categories(self):
         self.txt_oms.clear();self.txt_wait.clear();self.clear_right_panel() # Se limpian los paneles
         self.disable_side_buttons();self.disable_act_buttons()              # Se desactivan ambas listas de botones
-        self.txt_oms.setHtml("<h2><center>Seleccione el Sistema Inicial</center></h2>")
+        self.txt_oms.setHtml("<h2><center>Filtro de Seleccion</center></h2>"
+                             "<h3><center>Seleccione el sistema Inicial</center></h3>")
+        self.txt_wait.setHtml("<b><center>Fase 1</center></b>"
+                              "<p><center>Revisando Base de datos ..</center></p>")
 
         # Crear lista de sistemas
         self.lista = QListWidget()
@@ -1136,6 +1191,8 @@ class MainWindow(QMainWindow): # Constructor o init
         self.clear_right_panel()
         self.txt_oms.setHtml("<h2><center>Seleccione el Grupo etario</center></h2>"
                              f"<p><center>Preferente para el {self.sistema_actual}.</center></p>")
+        self.txt_wait.setHtml("<b><center>Fase 2</center></b>"
+                              "<p><center>Coleccionando Datos y Modelos ..</center></p>")
 
         self.lista = QListWidget()
         edades = ["12-15 años", "15-18 años"]
@@ -1165,8 +1222,10 @@ class MainWindow(QMainWindow): # Constructor o init
         self.txt_oms.setHtml("<h2><center>Finalmente Seleccione</center></h2>"
                              "<h2><center>La enfermedad</center></h2>"
                              f"<p><center>Del {self.sistema_actual}, mas común a la edad de {self.edad_actual}.</center></p>")
+        self.txt_wait.setHtml("<b><center>Fase 3</center></b>"
+                              "<p><center>Conectando recepcion con Life Analizer ..</center></p>")
 
-        enfermedades_sistemas = {
+        self.enfermedades_sistemas = {
             "Sistema respiratorio": "COVID-19",
             "Sistema digestivo": "Hepatitis",
             "Sistema circulatorio": "Anemia",
@@ -1178,22 +1237,22 @@ class MainWindow(QMainWindow): # Constructor o init
             "Sistema muscular": "Tétanos",
             "Sistema óseo": "Osteoporosis"
         }
-        enfermedades_descripcion = {
-            "COVID-19": "",
-            "Hepatitis": "",
-            "Anemia": "",
-            "Epilepsia": "",
-            "Obesidad": "",
-            "Esclerosis múltiple": "",
-            "Síndrome nefrótico": "",
-            "Dermatitis": "",
-            "Tétanos": "",
-            "Osteoporosis": ""
+        self.enfermedades_descripcion = {
+            "COVID-19": "El COVID-19, abreviatura de Coronavirus Disease 2019, es una enfermedad respiratoria causada por el virus SARS-CoV-2, perteneciente a la familia de los coronavirus. \n\nFue identificada por primera vez en Wuhan, China, en diciembre de 2019. \n\nSu origen se asocia al salto zoonótico de un virus de murciélago hacia humanos, probablemente a través de un hospedador intermedio.\nLa enfermedad se propagó rápidamente, convirtiéndose en una pandemia global declarada por la OMS el 11 de marzo de 2020.\nSu mecanismo principal afecta al sistema respiratorio, causando fiebre, tos seca, dificultad para respirar, pérdida del olfato y gusto, y en casos graves, neumonía, síndrome de dificultad respiratoria aguda y fallo multiorgánico.",
+            "Hepatitis": "La hepatitis es la inflamación del hígado, órgano esencial encargado de filtrar toxinas y metabolizar nutrientes. \n\nSu nombre proviene del griego hepar (hígado) y itis (inflamación). Existen varios tipos: A, B, C, D y E, cada uno con un agente viral distinto y diferentes formas de transmisión.\nHepatitis A y E: transmitidas por alimentos o agua contaminados.\nHepatitis B, C y D: por contacto con sangre o fluidos corporales infectados.\nLa enfermedad puede ser aguda o crónica. En sus formas graves puede provocar cirrosis o cáncer hepático.\nLos síntomas incluyen ictericia (color amarillento de la piel), fatiga, náuseas y dolor abdominal.",
+            "Anemia": "La anemia es una deficiencia en la cantidad o calidad de glóbulos rojos o hemoglobina, lo que reduce la capacidad de transporte de oxígeno en la sangre. \n\nSu origen puede ser nutricional (falta de hierro, vitamina B12 o ácido fólico), genético (como la anemia falciforme) o secundario a enfermedades crónicas.\n\nSe conoce desde la antigüedad, descrita ya por médicos griegos y egipcios. Los pacientes suelen mostrar palidez, cansancio, mareos, taquicardia y dificultad para concentrarse.",
+            "Epilepsia": "La epilepsia es una enfermedad neurológica crónica caracterizada por descargas eléctricas anormales en el cerebro que provocan convulsiones recurrentes. Fue descrita desde el antiguo Egipto y Grecia, donde se le atribuían causas sobrenaturales; sin embargo, hoy se entiende como un trastorno del sistema nervioso central.\n\nPuede tener origen genético, traumático, infeccioso o idiopático (sin causa aparente). Los episodios epilépticos varían desde breves lapsos de desconexión hasta convulsiones generalizadas.",
+            "Obesidad": "La obesidad es una enfermedad metabólica y crónica caracterizada por una acumulación excesiva de grasa corporal, que pone en riesgo la salud. Se considera un problema global moderno, asociado al sedentarismo, mala alimentación y factores genéticos.\n\nEl índice de masa corporal (IMC) superior a 30 define clínicamente la obesidad. Su origen biológico radica en un desequilibrio energético: se consumen más calorías de las que se gastan.",
+            "Esclerosis múltiple": "La esclerosis múltiple (EM) es una enfermedad autoinmune y degenerativa del sistema nervioso central. \n\nEl propio sistema inmunitario ataca la mielina, sustancia que recubre las fibras nerviosas, interrumpiendo la comunicación entre cerebro y cuerpo.\n\nDescubierta en el siglo XIX por Jean-Martin Charcot, su causa sigue sin conocerse del todo, aunque se asocia a predisposición genética, infecciones virales y factores ambientales.",
+            "Síndrome nefrótico": "El síndrome nefrótico es un trastorno renal en el que los riñones pierden grandes cantidades de proteínas a través de la orina, afectando la función filtrante de los glomérulos. Fue descrito por primera vez en el siglo XIX y se asocia a enfermedades como glomerulonefritis, diabetes mellitus o lupus.\n\nSus síntomas principales son edema (hinchazón generalizada), orina espumosa, fatiga y aumento de peso. El daño renal altera la presión osmótica sanguínea, lo que genera retención de líquidos.",
+            "Dermatitis": "La dermatitis es una inflamación de la piel causada por factores alérgicos, irritantes o inmunológicos. \n\nSu término deriva del griego derma (piel) y itis (inflamación). \n\nPuede ser atópica, seborreica, de contacto o por irritación.\n\nSus síntomas incluyen enrojecimiento, picazón, descamación y, a veces, ampollas o grietas. Tiene un fuerte componente genético y ambiental: productos químicos, detergentes, polvo o estrés pueden desencadenarla.",
+            "Tétanos": "El tétanos es una infección aguda del sistema nervioso provocada por la bacteria Clostridium tetani, descubierta en 1884 por Carle y Rattone. Esta bacteria produce una toxina, la tetanospasmina, que bloquea los impulsos nerviosos inhibitorios, causando espasmos musculares intensos y rigidez generalizada.\n\nSe transmite por heridas contaminadas con esporas del suelo o de objetos oxidados. Los síntomas aparecen entre 3 y 21 días después de la infección: rigidez mandibular (“risa sardónica”), dificultad para tragar, espasmos y, en casos graves, paro respiratorio.",
+            "Osteoporosis": "La osteoporosis es una enfermedad metabólica ósea caracterizada por la disminución de la densidad mineral del hueso, lo que lo vuelve frágil y propenso a fracturas. \n\nSu nombre proviene del griego osteo (hueso) y poros (poroso).\n\nFue reconocida médicamente a principios del siglo XX, aunque sus consecuencias se conocían desde la antigüedad. Afecta especialmente a mujeres posmenopáusicas por la caída del estrógeno, aunque también puede deberse a deficiencia de calcio, sedentarismo o envejecimiento."
         }
-    
+
         self.lista = QListWidget()
-        enfermedades = enfermedades_sistemas.get(self.sistema_actual, ["No se encontraron enfermedades"])
-        self.lista.addItems(enfermedades)
+        enfermedades = self.enfermedades_sistemas.get(self.sistema_actual)
+        self.lista.addItem(enfermedades)
         self.lista.itemClicked.connect(self.selected_dis)
         self.right_layout.addWidget(self.txt_oms, 1)
         self.right_layout.addSpacing(10)
@@ -1202,6 +1261,7 @@ class MainWindow(QMainWindow): # Constructor o init
         self.btn_tratamiento = AnimatedButton("¡Enfermedad encontrada!")
         self.btn_tratamiento.clicked.connect(self.mostrar_tratamiento)
         self.right_layout.addWidget(self.btn_tratamiento)
+
     def selected_dis(self, item):                          # Al hacer clic en un item
         self.actual_dis = item.text()
         self.btn_tratamiento.setText(f"{self.actual_dis}")
@@ -1225,7 +1285,7 @@ class MainWindow(QMainWindow): # Constructor o init
         self.clear_right_panel()
         self.txt_oms.setHtml("<h2><center>Patogeno Listo</center></h2>"
                              f"<h2><center>{self.enfermedad_actual}\n</center></h2>"
-                             "<p><center>Informacion breve de la enfermedad</center></p>"
+                             "<p><center>Organizacion Mundial de la Salud</center></p>"
                              "<p><center>Si desea analizar de nuevo con parametros diferentes, simplemente haga click en el boton Analisis de Patologias</center></p>")
         self.txt_wait.setHtml("<b><center>¡Listo! Datos encontrados para el</center></b>"
                               f"<p><center>{self.sistema_actual} | Edad: {self.edad_actual}</center></p>")
@@ -1237,8 +1297,9 @@ class MainWindow(QMainWindow): # Constructor o init
             self.enable_side_buttons()
         else:
             self.enable_side_buttons()
-        enfermedad_actual=self.enfermedad_actual
-        self.disease_win = DiseasePatogen(enfermedad_actual)
+        enfermedad_actual = self.enfermedad_actual
+        descripciones = getattr(self, "enfermedades_descripcion", {}).get(self.enfermedad_actual, "No hay descripción disponible.")
+        self.disease_win = DiseasePatogen(enfermedad_actual, descripciones)
         self.disease_win.show()
 
     #-------------------------FIN DE FUNCIONES DE SELECCION JERARQUICA
@@ -1247,40 +1308,10 @@ class MainWindow(QMainWindow): # Constructor o init
     def show_info(self):
         dialog = QDialog(self)
         dialog.setWindowTitle("Lifeness Simulator Version 3.5")
-        dialog.setMinimumSize(600, 500)
-        dialog.setStyleSheet("""
-            QDialog {
-                background-color: #141414;
-                color: #e0e0e0;
-                font-family: 'Segoe UI';
-            }
-            QLabel#title {
-                font-size: 22px;
-                font-weight: bold;
-                color: #00b7ff;
-                margin-bottom: 10px;
-            
-            QTextEdit {
-                background-color: #1e1e1e;
-                color: #d6d6d6;
-                border: none;
-                font-size: 13px;
-                line-height: 1.4;
-                padding: 10px;
-            }
-            QPushButton {
-                background-color: #2d2d2d;
-                border-radius: 8px;
-                padding: 6px 14px;
-                color: #ffffff;
-            }
-            QPushButton:hover {
-                background-color: #404040;
-            }
-        """)
+        dialog.setFixedSize(600, 500)
 
         banner_label = QLabel()
-        banner_pixmap = QPixmap("assets/pictures/banner_lifeness.png")  # Ruta del banner
+        banner_pixmap = QPixmap("assets/pictures/logos/life_logo_hor.png")  # Ruta del banner
         if not banner_pixmap.isNull():
             banner_pixmap = banner_pixmap.scaledToWidth(640, Qt.SmoothTransformation)
         banner_label.setPixmap(banner_pixmap)
@@ -1288,7 +1319,7 @@ class MainWindow(QMainWindow): # Constructor o init
         banner_label.setStyleSheet("border: none; margin-bottom: 8px;")
 
     # --- Título debajo del banner ---
-        title = QLabel("Información Técnica")
+        title = QLabel("Life App | Patente e Informacion Tecnica")
         title.setObjectName("title")
         title.setAlignment(Qt.AlignCenter)
 
@@ -1296,60 +1327,71 @@ class MainWindow(QMainWindow): # Constructor o init
         info_text.setReadOnly(True)
         info_text.setTextInteractionFlags(Qt.TextSelectableByMouse)
         info_text.setPlainText("""
-            📖 DESCRIPCIÓN GENERAL
+            ·  DESCRIPCIÓN GENERAL
+                               
             Lifeness Project es un simulador biomédico interactivo 3D diseñado para el aprendizaje práctico 
             de los estudiantes en áreas científicas y tecnológicas. Su enfoque está basado en la 
             visualización dinámica del cuerpo humano, sus sistemas y enfermedades, integrando elementos 
             de biología, anatomía, y tecnología aplicada.
 
-            🧬 PROPÓSITO ACADÉMICO
+            ·  PROPÓSITO ACADÉMICO
+                               
             El propósito del simulador es fomentar el pensamiento crítico y la comprensión de procesos 
             fisiológicos a través de la simulación visual. Es una herramienta educativa moderna que 
             permite explorar enfermedades, visualizar reacciones del cuerpo y analizar respuestas biológicas 
             de manera interactiva.
 
-            ⚙️ FUNCIONALIDADES PRINCIPALES
+            ·  FUNCIONALIDADES PRINCIPALES:
+
             - Exploración 3D de modelos anatómicos masculinos y femeninos.
             - Simulación de sistemas humanos (respiratorio, nervioso, muscular, óseo, etc.).
-    - Visualización por edad y relación con enfermedades.
-    - Generación automática de reportes en formato DOCX y JSON.
-    - Registro de usuario y activación personalizada.
-    - Modo oscuro, animaciones suaves, y paneles interactivos.
-    - Módulo “Extras” con visualización de órganos 3D específicos.
+            - Visualización por edad y relación con enfermedades.
+            - Generación automática de reportes en formato DOCX y JSON.
+            - Registro de usuario y activación personalizada.
+            - Modo oscuro, animaciones suaves, y paneles interactivos.
+            - Módulo “Extras” con visualización de órganos 3D específicos.
 
-    🏛️ INSTITUCIONAL Y CIENTÍFICO
-    El proyecto se desarrolla con fines educativos, alineado con estándares de la OMS y 
-    recomendaciones pedagógicas actuales para el aprendizaje STEM (Ciencia, Tecnología, 
-    Ingeniería y Matemáticas). Lifeness Project promueve la integración entre informática 
-    y biomedicina.
+            ·  INSTITUCIONAL Y CIENTÍFICO
+                               
+            El proyecto se desarrolla con fines educativos, alineado con estándares de la OMS y 
+            recomendaciones pedagógicas actuales para el aprendizaje STEM (Ciencia, Tecnología, 
+            Ingeniería y Matemáticas). Lifeness Project promueve la integración entre informática 
+            y biomedicina.
 
-    🔧 DESARROLLO TÉCNICO
-    - Lenguaje: Python 3.12
-    - Librerías principales: PySide6, OpenGL, Numpy, PyQtGraph.
-    - Arquitectura: Modelo orientado a clases con GUI modular.
-    - Exportaciones automáticas: JSON y DOCX.
-    - Interfaz optimizada para Windows 10/11 (x64).
+            ·  DESARROLLO TÉCNICO
+                               
+            - Lenguaje: Python 3.12
+            - Librerías principales: PySide6, OpenGL, Numpy, PyQtGraph.
+            - Arquitectura: Modelo orientado a clases con GUI modular.
+            - Exportaciones automáticas: MD. y DOCX.
+            - Interfaz optimizada para Windows 10/11 (x64).
 
-    👩‍💻 EQUIPO DE DESARROLLO
-    El equipo de Lifeness Project está conformado por estudiantes e investigadores en informática 
-    biomédica, comprometidos con la innovación educativa y la accesibilidad del conocimiento 
-    científico mediante simulaciones digitales interactivas.
+            👩‍💻 EQUIPO DE DESARROLLO
+                               
+            El equipo de Lifeness Project está conformado por estudiantes e investigadores en informática 
+            biomédica, comprometidos con la innovación educativa y la accesibilidad del conocimiento 
+            científico mediante simulaciones digitales interactivas.
 
-    📅 VERSIÓN Y FECHA
-    Versión: 1.0.0
-    Fecha de desarrollo: Octubre 2025
+            ·  VERSIÓN Y FECHA
+                               
+            Versión: 3.5.0
+            Inicio de desarrollo: Enero 2025
 
-    📘 DERECHOS Y LICENCIA
-    Este software está protegido bajo uso educativo. Su reproducción parcial o total sin 
-    autorización académica está prohibida. Proyecto desarrollado para instituciones de 
-    educación superior y centros científicos.
+            ·  DERECHOS Y LICENCIA
+                               
+            Este software está protegido bajo uso educativo. Su reproducción parcial o total sin 
+            autorización académica está prohibida. Proyecto desarrollado para instituciones de 
+            educación superior y centros científicos.
 
-    🌐 CONTACTO Y SOPORTE
-    Para soporte técnico o información adicional:
-    Correo institucional: support@lifenessproject.org
-    Página web oficial: www.lifenessproject.edu
+            ·  CONTACTO Y SOPORTE
+                               
+            Para soporte técnico o información adicional. Consulte el libro Oficial
+            o bien con contacte con el servicio de soporte tecnico profesional.
+            
+            ·  Life By Lifeness Project
+                               
         """)
-        btn_close = QPushButton("Cerrar")
+        btn_close = AnimatedButton("Cerrar")
         btn_close.clicked.connect(dialog.close)
 
         layout = QVBoxLayout(dialog)
@@ -1391,32 +1433,32 @@ class MainWindow(QMainWindow): # Constructor o init
         dlg = QMessageBox(self)
         dlg.setWindowTitle("Ayuda y Soporte")
         help_text = ("""
-        <h2>🧭 Guía rápida del simulador</h2>
+        <h2>Life App | Guía Express</h2>
         <ul>
             <li>Selecciona un sistema (respiratorio, nervioso, etc.)</li>
-            <li>Escoge la edad del paciente</li>
+            <li>Escoge el grupo Etario</li>
             <li>Selecciona una enfermedad</li>
-            <li>Visualiza el modelo 3D y su descripción interactiva</li>
+            <li>Analiza los datos plasmados y su descripción interactiva</li>
         </ul>
 
-        <h3>⚙️ Controles del visualizador 3D</h3>
+        <h3>· Controles del visualizador 3D</h3>
         <ul>
             <li>Click izquierdo: rotar el modelo</li>
             <li>Rueda del ratón: acercar / alejar</li>
             <li>Doble clic: centrar el modelo</li>
         </ul>
 
-        <h3>🧠 Atajos del simulador</h3>
+        <h3>· Atajos del simulador</h3>
         <ul>
             <li><b>Ctrl + R</b>: Reiniciar vista</li>
             <li><b>Ctrl + S</b>: Guardar reporte</li>
             <li><b>Esc</b>: Salir</li>
         </ul>
 
-        <h3>👨‍💻 Acerca de</h3>
-        <p><b>Lifeness Simulator v1.0</b><br>
+        <h3>👨‍💻  Acerca de</h3>
+        <p><b>Life v3.5</b><br>
         Simulador biomédico educativo desarrollado con Python y PySide6.<br>
-        Desarrollado por el equipo <b>Lifeness Project</b>.</p>
+        Lifeness Project | <b>Simulation that Transforms</b>.</p>
         """)
         dlg.setText(help_text)
         dlg.exec()
@@ -1457,7 +1499,7 @@ class MainWindow(QMainWindow): # Constructor o init
         dialog.exec()
 
     def author_regards(self):
-        dlg = AuthorsDialog()
+        dlg = AuthorsDialog(self)
         dlg.exec()
 
     def check_key(self, dialog):
@@ -1591,7 +1633,7 @@ class MainWindow(QMainWindow): # Constructor o init
         dlg = SettingsDialog(self, current_lang=self.meta.idioma)
         if dlg.exec() == QDialog.Accepted:
             vals = dlg.values()
-            logger.info("Ajustes aplicados en Interactive: %s", vals)
+            logger.info("Ajustes aplicados en Interactive 3D: %s", vals)
 
     def confirm_exit(self):
         resp = QMessageBox.question(self, "Life", "¿Desea salir?", QMessageBox.Yes | QMessageBox.No)
@@ -1608,16 +1650,6 @@ class MainWindow(QMainWindow): # Constructor o init
         answer = QMessageBox.question(self, "Life", f"Reporte listo. \n¿Desea guardarlo en {path}?.", QMessageBox.Yes | QMessageBox.No)
         if answer == QMessageBox.Yes:
             QMessageBox.information(self, "Success", "¡Excelente! Reporte exitosamente guardado.")
-    
-    def on_play(self):  # Timeline Controls
-        if not self.timeline_playing:
-            self.timeline_timer.start(int(1000 / self.timeline_speed))
-            self.timeline_playing = True
-
-    def on_pause(self):
-        if self.timeline_playing:
-            self.timeline_timer.stop()
-            self.timeline_playing = False
 
     def on_speed_change(self, txt):
         self.timeline_speed = 0.5 if txt.startswith("0.5") else (2.0 if txt.startswith("2") else 1.0)
@@ -1625,37 +1657,22 @@ class MainWindow(QMainWindow): # Constructor o init
             self.timeline_timer.start(int(1000 / self.timeline_speed))
 
     def on_model_slider_changed(self, value):
-        if value < 33:
-            model_path = "assets/models/humano.obj"
-        elif value < 66:
-            model_path = "assets/models/musculo.obj"
+        if value <= 33:
+            models = os.path.join(BASE_DIR, "assets", "anatomy", "male.obj")
+        elif value <= 66:
+            models = os.path.join(BASE_DIR, "assets", "anatomy", "male_muscle.obj")
         else:
-            model_path = "assets/models/esqueleto.obj"
+            models = os.path.join(BASE_DIR, "assets", "anatomy", "male_skeleton.obj")
 
-        if getattr(self, "_current_model", None) == model_path:
+        if getattr(self, "current_model", None) == models:
             return
-        self.current_model = model_path
-        self.animate_model_transition(model_path)
+        model_path = models
+        self.current_model = models
+        self.gl_widget.load_model(model_path)
 
-    def animate_model_transition(self, model_path):
-        effect = QGraphicsOpacityEffect(self.gl_widget)
-        self.gl_widget.setGraphicsEffect(effect)
-
-        fade_out = QPropertyAnimation(effect, b"opacity")
-        fade_out.setDuration(700)
-        fade_out.setStartValue(1.0)
-        fade_out.setEndValue(0.0)
-
-        def on_fade_out_finished():
-            self.gl_widget.load_model(model_path)
-            fade_in = QPropertyAnimation(effect, b"opacity")
-            fade_in.setDuration(700)
-            fade_in.setStartValue(0.0)
-            fade_in.setEndValue(1.0)
-            fade_in.start()
-
-        fade_out.finished.connect(on_fade_out_finished)
-        fade_out.start()
+    def webpage(self):
+         page = "https://github.com/mathjv/Lifeness_Simulator.git"
+         webbrowser.open(page)
 
     def toggle_fullscreen(self):
         if self.isFullScreen():
@@ -1682,13 +1699,20 @@ class SplashWindow(QWidget):
         self.resize(800, 420)
         layout = QVBoxLayout(self)
         title = QLabel(self.meta.titulo)
-        title.setFont(QFont("Montserrat Semibold", 30))
+        title.setFont(QFont("Montserrat Semibold", 36))
         title.setStyleSheet("color: white;")
         title.setAlignment(QtCore.Qt.AlignCenter)
-        sub = QLabel(f"{self.meta.descripcion}\n\n\n{self.meta.autores}\nVersión: {self.meta.version}\n{self.meta.fecha}")
+        sub = QLabel(self.meta.descripcion)
         sub.setStyleSheet("color: #ddd;")
         sub.setAlignment(QtCore.Qt.AlignCenter)
-        sub.setFont(QFont("Open Sans", 10))
+        sub.setFont(QFont("Open Sans", 16))
+        shadow = QGraphicsDropShadowEffect()
+        shadow.setBlurRadius(10)
+        shadow.setColor(QColor(0, 0, 0))  # negro
+        shadow.setOffset(2, 2)
+        title.setGraphicsEffect(shadow)
+        sub.setGraphicsEffect(shadow)
+
         layout.addStretch()
         layout.addWidget(title)
         layout.addWidget(sub)
@@ -1733,10 +1757,18 @@ class WelcomeScreen(QWidget):
         self.bg_label.setMovie(self.movie)
         self.movie.start()
 
-        self.text = QLabel("Bienvenido(a) a Lifeness Simulator\n"+(self.user_name if self.user_name else ""))
+        self.text = QLabel("Lifeness Simulator")
         self.text.setAlignment(Qt.AlignCenter)
         self.text.setStyleSheet("color: white;")
         self.text.setFont(QFont("Comic Sans", 20))
+
+        self.label_welcome = QLabel("", self)
+        self.label_welcome.setAlignment(Qt.AlignCenter)
+        self.label_welcome.setStyleSheet("font-size: 36px; font-weight: bold; color: white;")
+        if self.user_name:
+            self.label_welcome.setText(f"Bienvenido(a) {self.user_name}")
+        else:
+            self.label_welcome.setText("Bienvenido")
 
         # Botones (ocultos al inicio)
         self.btn_readme = AnimatedButton("Abrir README.md")
@@ -1762,13 +1794,51 @@ class WelcomeScreen(QWidget):
 
         # Layout general
         layout = QVBoxLayout(self)
-        
+        layout.addSpacing(10)
         layout.addWidget(self.text, alignment=Qt.AlignCenter)
         layout.addSpacing(25)
+        layout.addWidget(self.label_welcome) #Label welcome
+
         layout.addWidget(self.btn_start, alignment=Qt.AlignCenter)
         layout.addWidget(self.btn_readme, alignment=Qt.AlignCenter)
         layout.addWidget(self.btn_exit, alignment=Qt.AlignCenter)
+
+        self.hide_buttons()
         self.setLayout(layout)
+        
+        # Efecto de opacidad
+        self.effect = QGraphicsOpacityEffect(self.label_welcome)
+        self.label_welcome.setGraphicsEffect(self.effect)
+
+        # Animaciones
+        self.fade_in = QPropertyAnimation(self.effect, b"opacity")
+        self.fade_in.setDuration(1500)
+        self.fade_in.setStartValue(0)
+        self.fade_in.setEndValue(1)
+
+        self.fade_out = QPropertyAnimation(self.effect, b"opacity")
+        self.fade_out.setDuration(1500)
+        self.fade_out.setStartValue(1)
+        self.fade_out.setEndValue(0)
+
+        # Iniciar animación en orden
+        self.fade_in.finished.connect(lambda: QTimer.singleShot(1000, self.start_fade_out))
+        self.fade_out.finished.connect(self.show_buttons)
+        self.fade_in.start()
+
+    def start_fade_out(self):
+        self.fade_out.start()
+
+    def show_buttons(self):
+        self.label_welcome.hide()
+        self.text.show()
+        for btn in (self.btn_readme, self.btn_start, self.btn_exit):
+            btn.setVisible(True)
+
+    def hide_buttons(self):
+        self.text.hide()
+        for btn in (self.btn_readme, self.btn_start, self.btn_exit):
+            btn.setVisible(False)
 
     def abrir_readme(self):
         documents_dir = user_documents_dir()
@@ -1794,7 +1864,7 @@ class WelcomeScreen(QWidget):
         acces_lab.setAlignment(QtCore.Qt.AlignCenter)
         layout.addWidget(acces_lab) # Titulo centrado
 
-        pict.setPixmap(QPixmap(os.path.join(ASSETS_DIR, "pictures", "modern_logo.png")).scaled(225, 225, QtCore.Qt.KeepAspectRatio))
+        pict.setPixmap(QPixmap(os.path.join(ASSETS_DIR, "pictures/logos", "modern_logo.png")).scaled(225, 225, QtCore.Qt.KeepAspectRatio))
         layout.addWidget(pict, alignment=QtCore.Qt.AlignCenter) # Agregamos y centramos la imagen
 
         label = QLabel("Donde la simulacion se transforma, nosotros ya habremos manejado los cambios")
